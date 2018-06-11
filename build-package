@@ -12,8 +12,16 @@ echo "Building $NPMVERSION..."
 # Remove potential leftovers from a previous build
 rm -rf "$DESTDIR" "$OUTDIR"
 
+# Alter the tarball to remove sqlite3
+# FIXME: Remove this, it's to simulate a pre-release with sqlite3 in optionalDependencies
+curl https://registry.npmjs.org/thelounge/-/thelounge-${NPMVERSION}.tgz -o /tmp/thelounge-before.tgz
+mkdir /tmp/thelounge
+tar -xvzf /tmp/thelounge-before.tgz -C /tmp/thelounge
+sed -i '/sqlite3/d' /tmp/thelounge/package/package.json
+tar -cvzf /tmp/thelounge-after.tgz -C /tmp/thelounge package
+
 # Install the package itself
-npm install -g --no-optional --prefix "$DESTDIR/usr" thelounge@${NPMVERSION}
+npm install -g --no-optional --prefix "$DESTDIR/usr" /tmp/thelounge-after.tgz
 
 # Write .thelounge_home to set correct system config directory
 echo "/etc/thelounge" > "$DESTDIR/usr/lib/node_modules/thelounge/.thelounge_home"
